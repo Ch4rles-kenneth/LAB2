@@ -1,12 +1,15 @@
 import React from 'react';
+import { useLocalSearchParams } from 'expo-router';
 import ResultScreen from '@/screens/ResultScreen';
 
 /**
- * /result Route — Phase 3/5 Placeholder
+ * /result Route — Phase 3/5
  *
- * Renders the ResultScreen component which showcases the layout and placeholder
- * analysis values. In Phase 5, this will make real HTTP requests to the Gemini API.
+ * Extracts the captured `photoUri` search parameter from navigation and passes it
+ * to the `ResultScreen` component.
  */
 export default function ResultRoute() {
-  return <ResultScreen />;
+  const params = useLocalSearchParams<{ photoUri: string }>();
+
+  return <ResultScreen photoUri={params.photoUri} />;
 }

@@ -1,3 +1,5 @@
+import * as FileSystem from 'expo-file-system';
+
 /**
  * Gemini API Integration Library
  * Safe environment access: process.env.EXPO_PUBLIC_GEMINI_KEY
@@ -25,10 +27,10 @@ const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models
  * @returns Base64 encoded string of the image
  */
 export async function imageToBase64(fileUri: string): Promise<string> {
-  // We will install and use expo-file-system for reading the file in Phase 4.
-  // This is a placeholder showing how the workflow structure is set up.
-  console.log('Converting file to Base64:', fileUri);
-  return '';
+  const base64 = await FileSystem.readAsStringAsync(fileUri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  return base64;
 }
 
 /**
