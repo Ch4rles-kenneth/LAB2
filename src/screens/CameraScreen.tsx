@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { router } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
  * CameraScreen — Phase 2: Camera Fundamentals
@@ -18,6 +19,7 @@ import { router } from 'expo-router';
 export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
+  const insets = useSafeAreaInsets();
 
   // ── State 1: Permission status still loading ──────────────────────────────
   if (!permission) {
@@ -64,8 +66,11 @@ export default function CameraScreen() {
     <View style={styles.container}>
       <CameraView ref={cameraRef} style={styles.camera} facing="back" />
 
-      {/* Capture button — absolutely positioned at the bottom */}
-      <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
+      {/* Capture button — positioned dynamically based on safe area insets */}
+      <TouchableOpacity 
+        style={[styles.captureButton, { bottom: insets.bottom + 24 }]} 
+        onPress={takePicture}
+      >
         <Text style={styles.captureButtonText}>Capture</Text>
       </TouchableOpacity>
     </View>
@@ -86,7 +91,6 @@ const styles = StyleSheet.create({
   // ── Capture button (matches guide colours exactly) ───────────────────────
   captureButton: {
     position: 'absolute',
-    bottom: 40,
     alignSelf: 'center',
     backgroundColor: '#2E5BBA',
     paddingVertical: 14,

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 
 interface PreviewScreenProps {
   photoUri?: string;
@@ -12,10 +12,22 @@ export default function PreviewScreen({
   onRetake,
   onAnalyze,
 }: PreviewScreenProps) {
+  const { width } = useWindowDimensions();
+  const isTablet = width >= 768;
+
   return (
     <View style={styles.container}>
       {/* Background Image view */}
-      <Image source={{ uri: photoUri }} style={styles.previewImage} />
+      <Image 
+        source={{ uri: photoUri }} 
+        style={[
+          styles.previewImage, 
+          { 
+            maxWidth: isTablet ? 600 : '100%', 
+            alignSelf: 'center' 
+          }
+        ]} 
+      />
       
       {/* Bottom Control Panel */}
       <View style={styles.controlPanel}>
