@@ -3,13 +3,18 @@ import { useLocalSearchParams } from 'expo-router';
 import ResultScreen from '@/screens/ResultScreen';
 
 /**
- * /result Route — Phase 3/5
+ * /result Route — Phase 6
  *
- * Extracts the captured `photoUri` search parameter from navigation and passes it
- * to the `ResultScreen` component.
+ * Reads both `photoUri` and `promptKey` from navigation parameters and binds them to
+ * the ResultScreen component.
  */
 export default function ResultRoute() {
-  const params = useLocalSearchParams<{ photoUri: string }>();
+  const params = useLocalSearchParams<{ photoUri: string; promptKey: string }>();
 
-  return <ResultScreen photoUri={params.photoUri} />;
+  return (
+    <ResultScreen 
+      photoUri={params.photoUri} 
+      promptKey={params.promptKey} 
+    />
+  );
 }

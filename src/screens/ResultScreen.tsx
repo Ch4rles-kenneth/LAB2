@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import { imageToBase64, analyzeImage } from '@/lib/gemini';
 
-// Structured JSON analysis prompt for Gemini
-const ANALYSIS_PROMPT = `
+// Structured JSON analysis prompts for Gemini based on selected persona
+export const PROMPTS: Record<string, string> = {
+  academic: `
 Analyze this image. Identify:
-1. Objects - list the distinct physical objects you see
-2. Context - briefly describe the setting or scene
-3. Activities - what activity appears to be happening, if any
-4. Recommendations - one practical suggestion based on the scene
+1. Objects - list distinct physical educational or work objects
+2. Context - describe the learning environment or educational setting
+3. Activities - what learning or academic activity appears to be happening
+4. Recommendations - one constructive study tip or academic suggestion
 
 Respond ONLY with valid JSON in this exact shape, no extra text:
 {
@@ -18,7 +19,38 @@ Respond ONLY with valid JSON in this exact shape, no extra text:
   "activities": "...",
   "recommendations": "..."
 }
-`;
+`,
+  safety: `
+Analyze this image. Identify:
+1. Objects - list objects related to safety, tools, or physical structures
+2. Context - describe the physical workspace safety layout
+3. Activities - what work activity is occurring, focusing on posture/risks
+4. Recommendations - one safety tip, caution, or hazard mitigation suggestion
+
+Respond ONLY with valid JSON in this exact shape, no extra text:
+{
+  "objects": ["...", "..."],
+  "context": "...",
+  "activities": "...",
+  "recommendations": "..."
+}
+`,
+  inventory: `
+Analyze this image. Identify:
+1. Objects - list all physical capital assets and equipment visible
+2. Context - identify the asset storage or deployment location
+3. Activities - what asset utilisation behavior is taking place
+4. Recommendations - one lifecycle, tracking, or asset maintenance suggestion
+
+Respond ONLY with valid JSON in this exact shape, no extra text:
+{
+  "objects": ["...", "..."],
+  "context": "...",
+  "activities": "...",
+  "recommendations": "..."
+}
+`
+};
 
 interface AnalysisResult {
   objects: string[];
@@ -29,14 +61,15 @@ interface AnalysisResult {
 
 interface ResultScreenProps {
   photoUri?: string;
+  promptKey?: string;
 }
 
-export default function ResultScreen({ photoUri }: ResultScreenProps) {
+export default function ResultScreen({ photoUri, promptKey = 'academic' }: ResultScreenProps) {
   const [analysis, setAnalysis] = useState<AnalysisResult | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  const runAnalysis = async (uri: string) => {
+  const runAnalysis = useCallback(async (uri: string) => {
     setLoading(true);
     setError(null);
     try {
@@ -46,8 +79,11 @@ export default function ResultScreen({ photoUri }: ResultScreenProps) {
         throw new Error('Could not convert the image. The file may be empty or missing.');
       }
 
+      // Look up prompt based on selected persona
+      const promptText = PROMPTS[promptKey] || PROMPTS.academic;
+
       // 2. Transmit to Google's Gemini API
-      const response = await analyzeImage(base64Image, ANALYSIS_PROMPT);
+      const response = await analyzeImage(base64Image, promptText);
       
       // 3. Extract text from response structure
       const textPart = response?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -73,7 +109,7 @@ export default function ResultScreen({ photoUri }: ResultScreenProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [promptKey]);
 
   useEffect(() => {
     if (photoUri) {
@@ -83,7 +119,7 @@ export default function ResultScreen({ photoUri }: ResultScreenProps) {
       setError('No photo was provided for analysis.');
       setLoading(false);
     }
-  }, [photoUri]);
+  }, [photoUri, runAnalysis]);
 
   if (loading) {
     return (

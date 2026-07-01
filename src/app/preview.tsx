@@ -3,14 +3,10 @@ import { useLocalSearchParams, router } from 'expo-router';
 import PreviewScreen from '@/screens/PreviewScreen';
 
 /**
- * /preview Route — Phase 3: Image Preview Screen
+ * /preview Route — Phase 3/6
  *
- * This route reads the captured `photoUri` search parameter using Expo Router's
- * `useLocalSearchParams` and displays the PreviewScreen.
- *
- * - Tapping "Retake" executes `router.back()`, which pops this screen off the Stack
- *   and restores the active camera viewfinder.
- * - Tapping "Analyze" navigates to the `/result` page, passing along the `photoUri`.
+ * Pulls the captured `photoUri` parameter, sets up standard retake triggers,
+ * and handles prompt persona forwarding.
  */
 export default function PreviewRoute() {
   const params = useLocalSearchParams<{ photoUri: string }>();
@@ -19,11 +15,14 @@ export default function PreviewRoute() {
     router.back();
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = (promptKey: string) => {
     if (params.photoUri) {
       router.push({
         pathname: '/result',
-        params: { photoUri: params.photoUri },
+        params: { 
+          photoUri: params.photoUri,
+          promptKey: promptKey 
+        },
       });
     }
   };
