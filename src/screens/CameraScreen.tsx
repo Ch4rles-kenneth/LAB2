@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
+import { router } from 'expo-router';
 
 /**
  * CameraScreen — Phase 2: Camera Fundamentals
@@ -17,7 +18,6 @@ import { CameraView, useCameraPermissions } from 'expo-camera';
 export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
-  const [photo, setPhoto] = useState<string | null>(null);
 
   // ── State 1: Permission status still loading ──────────────────────────────
   if (!permission) {
@@ -44,10 +44,19 @@ export default function CameraScreen() {
   // ── Capture handler ───────────────────────────────────────────────────────
   async function takePicture() {
     if (!cameraRef.current) return;
-    const result = await cameraRef.current.takePictureAsync({ quality: 0.7 });
-    setPhoto(result?.uri ?? null);
-    // Confirmed capture: log the URI so the Phase 2 checkpoint can be verified
-    console.log('📸 Photo captured:', result?.uri);
+    try {
+      const result = await cameraRef.current.takePictureAsync({ quality: 0.7 });
+      if (result?.uri) {
+        console.log('📸 Photo captured:', result.uri);
+        // Navigate to the preview screen using search params
+        router.push({
+          pathname: '/preview',
+          params: { photoUri: result.uri },
+        });
+      }
+    } catch (error) {
+      console.error('Error capturing photo:', error);
+    }
   }
 
   // ── State 3: Permission granted — live preview ────────────────────────────
@@ -59,15 +68,6 @@ export default function CameraScreen() {
       <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
         <Text style={styles.captureButtonText}>Capture</Text>
       </TouchableOpacity>
-
-      {/* Confirm last capture URI (only while building — remove in Phase 5) */}
-      {photo && (
-        <View style={styles.photoConfirm}>
-          <Text style={styles.photoConfirmText} numberOfLines={1}>
-            ✅ {photo.split('/').pop()}
-          </Text>
-        </View>
-      )}
     </View>
   );
 }

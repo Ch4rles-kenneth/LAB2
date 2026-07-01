@@ -36,6 +36,18 @@ export default function RootLayout() {
           name="camera"
           options={{ presentation: 'fullScreenModal' }}
         />
+
+        {/* Preview Screen — shows the captured photo */}
+        <Stack.Screen
+          name="preview"
+          options={{ presentation: 'card' }}
+        />
+
+        {/* Result Screen — displays the analysis output */}
+        <Stack.Screen
+          name="result"
+          options={{ presentation: 'card' }}
+        />
       </Stack>
     </ThemeProvider>
   );
