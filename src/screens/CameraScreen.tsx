@@ -1,110 +1,141 @@
-import React, { useRef } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRef, useState } from 'react';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 
+/**
+ * CameraScreen — Phase 2: Camera Fundamentals
+ *
+ * Implements three states as required by the guide:
+ *  1. null permission  → empty View (OS is still loading permission status)
+ *  2. !permission.granted → friendly prompt + "Grant Permission" button
+ *  3. permission.granted  → full-screen CameraView + circular Capture button
+ *
+ * useRef is used (not useState) for the camera reference because we only
+ * need a stable handle to call takePictureAsync() — we never need React
+ * to re-render when that reference changes.
+ */
 export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const cameraRef = useRef<CameraView>(null);
+  const [photo, setPhoto] = useState<string | null>(null);
 
-  // 1. Initial State: Permissions loading
+  // ── State 1: Permission status still loading ──────────────────────────────
   if (!permission) {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.text}>Loading camera permissions...</Text>
-      </View>
-    );
+    return <View style={styles.container} />;
   }
 
-  // 2. Denied State: User needs to grant permission
+  // ── State 2: Permission denied ────────────────────────────────────────────
   if (!permission.granted) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.text}>We need your permission to show the camera</Text>
-        <TouchableOpacity style={styles.button} onPress={requestPermission}>
-          <Text style={styles.buttonText}>Grant Permission</Text>
+      <View style={styles.permissionContainer}>
+        {/* iOS and Android phrase permission dialogs differently */}
+        <Text style={styles.permissionText}>
+          {Platform.OS === 'ios'
+            ? 'VisionAI needs camera access.\nTap below, then choose "Allow" in the dialog.'
+            : 'VisionAI needs camera access.\nTap below to grant the permission.'}
+        </Text>
+        <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+          <Text style={styles.permissionButtonText}>Grant Permission</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
-  // 3. Capture Action placeholder
-  const takePicture = async () => {
-    if (cameraRef.current) {
-      try {
-        const photo = await cameraRef.current.takePictureAsync({
-          quality: 0.7,
-        });
-        console.log('Photo captured successfully:', photo?.uri);
-      } catch (error) {
-        console.error('Error capturing photo:', error);
-      }
-    }
-  };
+  // ── Capture handler ───────────────────────────────────────────────────────
+  async function takePicture() {
+    if (!cameraRef.current) return;
+    const result = await cameraRef.current.takePictureAsync({ quality: 0.7 });
+    setPhoto(result?.uri ?? null);
+    // Confirmed capture: log the URI so the Phase 2 checkpoint can be verified
+    console.log('📸 Photo captured:', result?.uri);
+  }
 
-  // 4. Granted State: Show live preview feed
+  // ── State 3: Permission granted — live preview ────────────────────────────
   return (
     <View style={styles.container}>
-      <CameraView style={styles.camera} facing="back" ref={cameraRef}>
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
-            <View style={styles.captureInnerCircle} />
-          </TouchableOpacity>
+      <CameraView ref={cameraRef} style={styles.camera} facing="back" />
+
+      {/* Capture button — absolutely positioned at the bottom */}
+      <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
+        <Text style={styles.captureButtonText}>Capture</Text>
+      </TouchableOpacity>
+
+      {/* Confirm last capture URI (only while building — remove in Phase 5) */}
+      {photo && (
+        <View style={styles.photoConfirm}>
+          <Text style={styles.photoConfirmText} numberOfLines={1}>
+            ✅ {photo.split('/').pop()}
+          </Text>
         </View>
-      </CameraView>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  // ── Shared ──────────────────────────────────────────────────────────────
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#0f172a',
   },
-  text: {
-    fontSize: 16,
-    color: '#cbd5e1',
-    textAlign: 'center',
-    marginBottom: 20,
-    paddingHorizontal: 20,
-  },
+
+  // ── Camera view ──────────────────────────────────────────────────────────
   camera: {
     flex: 1,
-    width: '100%',
   },
-  button: {
-    backgroundColor: '#3b82f6',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  buttonContainer: {
-    flex: 1,
-    backgroundColor: 'transparent',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    marginBottom: 36,
-  },
+
+  // ── Capture button (matches guide colours exactly) ───────────────────────
   captureButton: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    borderWidth: 4,
-    borderColor: '#ffffff',
+    position: 'absolute',
+    bottom: 40,
+    alignSelf: 'center',
+    backgroundColor: '#2E5BBA',
+    paddingVertical: 14,
+    paddingHorizontal: 36,
+    borderRadius: 30,
+  },
+  captureButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+
+  // ── Permission denied screen ─────────────────────────────────────────────
+  permissionContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    padding: 20,
+    backgroundColor: '#0f172a',
   },
-  captureInnerCircle: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#ffffff',
+  permissionText: {
+    textAlign: 'center',
+    marginBottom: 16,
+    fontSize: 16,
+    color: '#e2e8f0',
+    lineHeight: 24,
+  },
+  permissionButton: {
+    backgroundColor: '#2E5BBA',
+    padding: 12,
+    borderRadius: 8,
+  },
+  permissionButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+
+  // ── Temporary capture confirmation banner ────────────────────────────────
+  photoConfirm: {
+    position: 'absolute',
+    top: 60,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 20,
+  },
+  photoConfirmText: {
+    color: '#fff',
+    fontSize: 13,
   },
 });

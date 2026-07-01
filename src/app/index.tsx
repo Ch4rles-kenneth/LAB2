@@ -1,120 +1,125 @@
-import React, { useState } from 'react';
+import { router } from 'expo-router';
 import { Platform, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import CameraScreen from '@/screens/CameraScreen';
 
+/**
+ * HomeScreen — Phase 1 verification dashboard
+ *
+ * Shows environment variable status, installed dependencies, and folder
+ * structure. The "Open Camera" button uses Expo Router's router.push()
+ * to navigate to the /camera route (Phase 2).
+ */
 export default function HomeScreen() {
-  const [showCamera, setShowCamera] = useState<boolean>(false);
-
-  // Safely access the Gemini API Key
+  // Safely read the Gemini key from the environment
   const geminiKey = process.env.EXPO_PUBLIC_GEMINI_KEY;
   const isKeyConfigured = !!geminiKey && geminiKey !== 'your_gemini_api_key_here';
 
-  // Helper to mask key for display
-  const getMaskedKey = () => {
+  // Mask the key so it's safe to display on screen
+  function getMaskedKey() {
     if (!geminiKey) return 'Not Found';
-    if (geminiKey === 'your_gemini_api_key_here') return 'Placeholder Value';
-    return `${geminiKey.substring(0, 8)}...${geminiKey.substring(geminiKey.length - 4)}`;
-  };
-
-  if (showCamera) {
-    return (
-      <SafeAreaView style={styles.cameraContainer}>
-        <View style={styles.cameraHeader}>
-          <Text style={styles.cameraTitle}>Live Camera Feed</Text>
-          <TouchableOpacity 
-            style={styles.closeButton} 
-            onPress={() => setShowCamera(false)}
-          >
-            <Text style={styles.closeButtonText}>Close Camera</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.cameraWrapper}>
-          <CameraScreen />
-        </View>
-      </SafeAreaView>
-    );
+    if (geminiKey === 'your_gemini_api_key_here') return '⚠ Placeholder — add your real key';
+    return `${geminiKey.substring(0, 8)}...${geminiKey.slice(-4)}`;
   }
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
+
+        {/* ── Header ─────────────────────────────────────────────────────── */}
         <View style={styles.headerSection}>
           <View style={styles.logoBadge}>
             <Text style={styles.logoText}>AI</Text>
           </View>
           <Text style={styles.title}>VisionAI</Text>
-          <Text style={styles.subtitle}>Phase 1 Setup & Verification</Text>
+          <Text style={styles.subtitle}>Camera + Gemini Vision App</Text>
         </View>
 
-        {/* Environment Variable Verification */}
+        {/* ── Phase badge ─────────────────────────────────────────────────── */}
+        <View style={styles.phaseBadge}>
+          <Text style={styles.phaseBadgeText}>✅ Phase 1 Complete · 📷 Phase 2 Active</Text>
+        </View>
+
+        {/* ── Environment Variables ───────────────────────────────────────── */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Environment Variables</Text>
+
           <View style={styles.row}>
-            <Text style={styles.label}>Var Name:</Text>
+            <Text style={styles.label}>Variable</Text>
             <Text style={styles.codeText}>EXPO_PUBLIC_GEMINI_KEY</Text>
           </View>
+
           <View style={styles.row}>
-            <Text style={styles.label}>Access Code:</Text>
+            <Text style={styles.label}>Access</Text>
             <Text style={styles.codeText}>process.env.EXPO_PUBLIC_...</Text>
           </View>
+
           <View style={styles.row}>
-            <Text style={styles.label}>Status:</Text>
+            <Text style={styles.label}>Status</Text>
             <View style={[styles.statusBadge, isKeyConfigured ? styles.badgeSuccess : styles.badgeWarning]}>
               <Text style={styles.statusText}>
-                {isKeyConfigured ? 'Configured' : 'Missing Key'}
+                {isKeyConfigured ? '✓ Configured' : '⚠ Missing Key'}
               </Text>
             </View>
           </View>
+
           <View style={styles.row}>
-            <Text style={styles.label}>Value:</Text>
-            <Text style={styles.maskedValueText}>{getMaskedKey()}</Text>
+            <Text style={styles.label}>Value</Text>
+            <Text style={styles.maskedValue}>{getMaskedKey()}</Text>
           </View>
         </View>
 
-        {/* Dependency Status Checklist */}
+        {/* ── Dependencies ────────────────────────────────────────────────── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Dependencies installed</Text>
+          <Text style={styles.cardTitle}>Dependencies Installed</Text>
+
           <View style={styles.checkItem}>
             <Text style={styles.checkIcon}>✓</Text>
-            <View>
+            <View style={styles.checkTextBlock}>
               <Text style={styles.checkTitle}>expo-camera</Text>
-              <Text style={styles.checkDesc}>Provides native camera components and permissions hooks</Text>
+              <Text style={styles.checkDesc}>
+                Native camera permissions, live preview, and photo capture
+              </Text>
             </View>
           </View>
+
           <View style={styles.checkItem}>
             <Text style={styles.checkIcon}>✓</Text>
-            <View>
+            <View style={styles.checkTextBlock}>
               <Text style={styles.checkTitle}>expo-router</Text>
-              <Text style={styles.checkDesc}>File-based routing navigation for modern Expo apps</Text>
+              <Text style={styles.checkDesc}>
+                File-based navigation — Stack + full-screen camera route
+              </Text>
             </View>
           </View>
         </View>
 
-        {/* Directory Structure Verification */}
+        {/* ── Folder Structure ────────────────────────────────────────────── */}
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Folder Structure Scalability</Text>
-          <View style={styles.dirItem}>
-            <Text style={styles.dirIcon}>📁</Text>
-            <Text style={styles.dirName}>src/components/ <Text style={styles.dirMute}>(Reusable UI)</Text></Text>
-          </View>
-          <View style={styles.dirItem}>
-            <Text style={styles.dirIcon}>📁</Text>
-            <Text style={styles.dirName}>src/screens/ <Text style={styles.dirMute}>(App screens logic)</Text></Text>
-          </View>
-          <View style={styles.dirItem}>
-            <Text style={styles.dirIcon}>📁</Text>
-            <Text style={styles.dirName}>src/lib/ <Text style={styles.dirMute}>(External API configs)</Text></Text>
-          </View>
+          <Text style={styles.cardTitle}>Scalable Folder Structure</Text>
+          {[
+            ['src/screens/', 'Full screen components (Camera, Preview, Result)'],
+            ['src/lib/',     'API helpers (gemini.ts, roboflow.ts)'],
+            ['src/components/', 'Reusable UI widgets'],
+            ['src/app/',    'Expo Router file-based routes'],
+          ].map(([dir, desc]) => (
+            <View key={dir} style={styles.dirItem}>
+              <Text style={styles.dirIcon}>📁</Text>
+              <View>
+                <Text style={styles.dirName}>{dir}</Text>
+                <Text style={styles.dirDesc}>{desc}</Text>
+              </View>
+            </View>
+          ))}
         </View>
 
-        {/* Action Button */}
-        <TouchableOpacity 
-          style={styles.actionButton} 
-          onPress={() => setShowCamera(true)}
+        {/* ── Open Camera ─────────────────────────────────────────────────── */}
+        <TouchableOpacity
+          style={styles.cameraButton}
+          onPress={() => router.push('/camera')}
+          accessibilityLabel="Open Camera Screen"
         >
-          <Text style={styles.actionButtonText}>Test Camera Permission & View</Text>
+          <Text style={styles.cameraButtonText}>📷  Open Camera</Text>
         </TouchableOpacity>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -127,11 +132,14 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: 24,
-    paddingBottom: 40,
+    paddingBottom: 48,
   },
+
+  // ── Header ───────────────────────────────────────────────────────────────
   headerSection: {
     alignItems: 'center',
-    marginVertical: 32,
+    marginTop: 16,
+    marginBottom: 20,
   },
   logoBadge: {
     width: 64,
@@ -140,29 +148,48 @@ const styles = StyleSheet.create({
     backgroundColor: '#4f46e5',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 12,
     shadowColor: '#4f46e5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
   },
   logoText: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: '#fff',
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: 'bold',
-    color: '#ffffff',
+    color: '#f8fafc',
     letterSpacing: 0.5,
   },
   subtitle: {
     fontSize: 14,
-    color: '#94a3b8',
+    color: '#64748b',
     marginTop: 4,
   },
+
+  // ── Phase badge ──────────────────────────────────────────────────────────
+  phaseBadge: {
+    backgroundColor: '#1e293b',
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    alignSelf: 'center',
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  phaseBadgeText: {
+    color: '#94a3b8',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+
+  // ── Cards ────────────────────────────────────────────────────────────────
   card: {
     backgroundColor: '#111827',
     borderWidth: 1,
@@ -172,14 +199,16 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#f8fafc',
     marginBottom: 16,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#1f2937',
-    paddingBottom: 8,
   },
+
+  // ── Rows ─────────────────────────────────────────────────────────────────
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -187,11 +216,11 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   label: {
-    fontSize: 14,
-    color: '#94a3b8',
+    fontSize: 13,
+    color: '#64748b',
   },
   codeText: {
-    fontSize: 13,
+    fontSize: 12,
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
     color: '#38bdf8',
     backgroundColor: '#0f172a',
@@ -199,8 +228,8 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 6,
   },
-  maskedValueText: {
-    fontSize: 14,
+  maskedValue: {
+    fontSize: 13,
     color: '#e2e8f0',
     fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
   },
@@ -209,101 +238,67 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 12,
   },
-  badgeSuccess: {
-    backgroundColor: 'rgba(34, 197, 94, 0.2)',
-  },
-  badgeWarning: {
-    backgroundColor: 'rgba(234, 179, 8, 0.2)',
-  },
+  badgeSuccess: { backgroundColor: 'rgba(34,197,94,0.15)' },
+  badgeWarning: { backgroundColor: 'rgba(234,179,8,0.15)' },
   statusText: {
     fontSize: 12,
     fontWeight: '700',
     color: '#f8fafc',
   },
+
+  // ── Dependency checklist ─────────────────────────────────────────────────
   checkItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 16,
+    marginBottom: 14,
   },
   checkIcon: {
     color: '#22c55e',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     marginRight: 12,
+    marginTop: 2,
   },
+  checkTextBlock: { flex: 1 },
   checkTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     color: '#f1f5f9',
   },
   checkDesc: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#64748b',
     marginTop: 2,
     lineHeight: 18,
   },
+
+  // ── Directory list ───────────────────────────────────────────────────────
   dirItem: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 12,
   },
-  dirIcon: {
-    fontSize: 16,
-    marginRight: 12,
-  },
-  dirName: {
-    fontSize: 14,
-    color: '#cbd5e1',
-  },
-  dirMute: {
-    color: '#64748b',
-    fontSize: 12,
-  },
-  actionButton: {
-    backgroundColor: '#4f46e5',
-    borderRadius: 12,
-    paddingVertical: 16,
+  dirIcon: { fontSize: 16, marginRight: 10, marginTop: 2 },
+  dirName: { fontSize: 14, color: '#cbd5e1', fontWeight: '600' },
+  dirDesc: { fontSize: 12, color: '#64748b', marginTop: 2 },
+
+  // ── Camera CTA ───────────────────────────────────────────────────────────
+  cameraButton: {
+    backgroundColor: '#2E5BBA',
+    borderRadius: 14,
+    paddingVertical: 18,
     alignItems: 'center',
-    marginTop: 12,
-    shadowColor: '#4f46e5',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 4,
+    marginTop: 8,
+    shadowColor: '#2E5BBA',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 6,
   },
-  actionButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
+  cameraButtonText: {
+    color: '#fff',
+    fontSize: 17,
     fontWeight: '700',
-  },
-  cameraContainer: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  cameraHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#0f172a',
-  },
-  cameraTitle: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  closeButton: {
-    backgroundColor: '#ef4444',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  closeButtonText: {
-    color: '#ffffff',
-    fontWeight: '600',
-    fontSize: 12,
-  },
-  cameraWrapper: {
-    flex: 1,
+    letterSpacing: 0.3,
   },
 });
