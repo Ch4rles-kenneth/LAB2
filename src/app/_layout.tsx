@@ -48,6 +48,12 @@ export default function RootLayout() {
           name="result"
           options={{ presentation: 'card' }}
         />
+
+        {/* History Screen — displays past analysis records from Supabase */}
+        <Stack.Screen
+          name="history"
+          options={{ presentation: 'card' }}
+        />
       </Stack>
     </ThemeProvider>
   );

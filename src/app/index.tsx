@@ -120,6 +120,15 @@ export default function HomeScreen() {
           <Text style={styles.cameraButtonText}>📷  Open Camera</Text>
         </TouchableOpacity>
 
+        {/* ── View History ─────────────────────────────────────────────────── */}
+        <TouchableOpacity
+          style={styles.historyButton}
+          onPress={() => router.push('/history')}
+          accessibilityLabel="View Analysis History"
+        >
+          <Text style={styles.historyButtonText}>🕑  View History</Text>
+        </TouchableOpacity>
+
       </ScrollView>
     </SafeAreaView>
   );
@@ -299,6 +308,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 17,
     fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+
+  // ── History CTA ───────────────────────────────────────────────────────────
+  historyButton: {
+    backgroundColor: '#1e293b',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: '#334155',
+    paddingVertical: 16,
+    alignItems: 'center',
+    marginTop: 12,
+  },
+  historyButtonText: {
+    color: '#94a3b8',
+    fontSize: 15,
+    fontWeight: '600',
     letterSpacing: 0.3,
   },
 });

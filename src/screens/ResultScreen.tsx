@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { router } from 'expo-router';
 import { imageToBase64, analyzeImage } from '@/lib/gemini';
+import { supabase } from '@/lib/supabase';
 
 // Structured JSON analysis prompts for Gemini based on selected persona
 export const PROMPTS: Record<string, string> = {
@@ -103,6 +104,19 @@ export default function ResultScreen({ photoUri, promptKey = 'academic' }: Resul
       // 5. Parse and store
       const parsedAnalysis: AnalysisResult = JSON.parse(jsonString);
       setAnalysis(parsedAnalysis);
+
+      // 6. Persist to Supabase history (fire-and-forget — failures don't block the UI)
+      supabase
+        .from('analysis_history')
+        .insert({
+          objects: parsedAnalysis.objects.join(', '),
+          context: parsedAnalysis.context,
+          recommendations: parsedAnalysis.recommendations,
+        })
+        .then(({ error }) => {
+          if (error) console.warn('History save failed (non-blocking):', error.message);
+          else console.log('✅ Analysis saved to history');
+        });
     } catch (err: any) {
       console.error('Analysis failed:', err);
       setError(err?.message || 'Could not analyze this image. Please check your network and try again.');
