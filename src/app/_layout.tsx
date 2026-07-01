@@ -10,20 +10,22 @@
  *  - presentation: 'fullScreenModal' (camera) → covers the entire display
  *    including the status bar, which is what a camera viewfinder requires.
  */
+import React, { useEffect } from 'react';
 import { Stack, DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useColorScheme } from 'react-native';
-
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
+  useEffect(() => {
+    SplashScreen.hideAsync().catch((err) => console.warn('Splash hide failed:', err));
+  }, []);
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
       <Stack screenOptions={{ headerShown: false }}>
         {/* Home screen — verification dashboard */}
         <Stack.Screen name="index" />

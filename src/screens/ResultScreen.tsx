@@ -127,7 +127,6 @@ export default function ResultScreen({ photoUri, promptKey = 'academic' }: Resul
 
   useEffect(() => {
     if (photoUri) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       runAnalysis(photoUri);
     } else {
       setError('No photo was provided for analysis.');
